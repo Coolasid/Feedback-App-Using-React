@@ -1,7 +1,7 @@
 import React from 'react'
 import FeedbackItem from './FeedbackItem'
 
-function FeedbackList({feedback}) {
+function FeedbackList({feedback , handleDelete}) {
 
     // console.log(feedback);
 
@@ -12,7 +12,7 @@ function FeedbackList({feedback}) {
     <div>
         {
             feedback.map((item)=>{
-                return <FeedbackItem key={item.id} item= {item} />
+                return <FeedbackItem key={item.rating} item= {item} handleDelete= {handleDelete} />
             })
         }
     </div>
