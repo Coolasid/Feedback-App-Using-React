@@ -1,6 +1,6 @@
-import { createContext, useState} from "react"
-import {v4 as uuid } from "uuid"
-import {FeedbackData} from "../data/feedbackData"
+import { createContext, useState, useEffect} from "react"
+import axios from "axios"
+// import {FeedbackData} from "../data/feedbackData"
 
 export const FeedbackContext = createContext();  //creating context
 
@@ -9,7 +9,22 @@ export const FeedbackProvider = ({children}) =>{   //this is for wrapper
 
   
 
-  const [feedback , setFeedback] = useState(FeedbackData);
+  const [feedback , setFeedback] = useState([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(()=>{
+    getFeedback()
+  },[]);
+
+  //getting feedback from server and seeting it to feedback=>
+  const getFeedback = async () =>{
+
+    const res = await axios.get("/feedback");
+
+      // console.log(res.data);
+      setFeedback(res.data)
+      setIsLoading(false)
+  }
 
   const [editFeedback, setEditFeedback] = useState({
     item:{},
@@ -17,20 +32,29 @@ export const FeedbackProvider = ({children}) =>{   //this is for wrapper
   })
 
   //delete feedback
-  const handleDelete = (id) =>{
+  const handleDelete = async (id) =>{
+
+
 
     if(window.confirm("Are you sure you want to delete?")){
 
+      await axios.delete(`/feedback/${id}`); 
+
       setFeedback(feedback.filter((item) => item.id !== id))
     }
+
+
   }
 
   // addFeedback
-  const addFeedback = (newFeedback) =>{
+  const addFeedback = async (newFeedback) =>{
 
-    newFeedback.id = uuid();
-    console.log(newFeedback);
-    setFeedback([newFeedback, ...feedback])
+    const res = await axios.post("/feedback", newFeedback)
+
+    // console.log(res);
+    setFeedback([res.data, ...feedback])
+
+    setIsLoading(false);
   }
 
   // editFeedback
@@ -44,19 +68,24 @@ export const FeedbackProvider = ({children}) =>{   //this is for wrapper
 
   // updateItem
 
-  const updateFeedback = (id, updateItem) =>{
+  const updateFeedback = async (id, updateItem) =>{
       // console.log(id, updateItem);
+
+     const res =  await axios.put(`feedback/${id}`, 
+        updateItem
+      )
+
       setFeedback(
         feedback.map((item) =>(
-          item.id === id ? {...item, ...updateItem} : item
+          item.id === id ? {...item, ...res.data} : item
         ))
       )
 
-      
+      isLoading(false )
   }
 
 
 
-  return  <FeedbackContext.Provider value={{feedback, updateFeedback, feedbackEdit, editFeedback, handleDelete, addFeedback}}>{children}</FeedbackContext.Provider>
+  return  <FeedbackContext.Provider value={{feedback, updateFeedback, isLoading, feedbackEdit, editFeedback, handleDelete, addFeedback}}>{children}</FeedbackContext.Provider>
 
 }
